@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../../services/auth_service.dart';
 import '../../core/routes/app_routes.dart';
 import '../../services/storage_service.dart';
 
@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController cabIdController = TextEditingController();
-
+  final AuthService authService = AuthService();
   bool isLoading = false;
 
   @override
@@ -38,9 +38,25 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     // Temporary delay (later replace with API call)
-    await Future.delayed(const Duration(seconds: 1));
+    final success = await authService.login(cabId);
 
-    await StorageService.saveCabId(cabId);
+if (!success) {
+  if (!mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text("Login Failed"),
+    ),
+  );
+
+  setState(() {
+    isLoading = false;
+  });
+
+  return;
+}
+
+await StorageService.saveCabId(cabId);
 
     if (!mounted) return;
 
